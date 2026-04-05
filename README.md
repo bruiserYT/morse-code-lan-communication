@@ -85,6 +85,15 @@ Pause approximately one second between letters
 Pause approximately two seconds between words
 Press ESC to exit the sender
 
+| Action              | Timing                |
+| ------------------- | --------------------- |
+| DOT (.)             | quick tap (< 0.3 sec) |
+| DASH (-)            | hold (> 0.3 sec)      |
+| Gap between symbols | ~0.2 sec              |
+| Gap between letters | ~1 sec                |
+| Gap between words   | ~2–3 sec              |
+
+
 ---
 
 ## Working Principle
