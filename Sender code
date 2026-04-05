@@ -1,0 +1,59 @@
+from pynput import keyboard
+import socket
+import time
+ 
+# ================= CONFIG =================
+receiver_ip = '172.20.10.5'   # 🔴 CHANGE THIS
+port = 8080
+threshold = 0.3  # seconds (dot vs dash)
+# =========================================
+ 
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect((receiver_ip, port))
+ 
+press_time = 0
+ 
+print("\n===== MORSE CODE SENDER =====")
+print("Instructions:")
+print("• Tap SPACE quickly  → DOT (.)")
+print("• Hold SPACE longer  → DASH (-)")
+print("• Pause ~1 sec between letters")
+print("• Pause ~2 sec between words")
+print("• Press ESC to exit\n")
+ 
+print("Start typing Morse:\n")
+ 
+def on_press(key):
+    global press_time
+    if key == keyboard.Key.space:
+        press_time = time.time()
+ 
+def on_release(key):
+    global press_time
+ 
+    if key == keyboard.Key.space:
+        duration = time.time() - press_time
+ 
+        # DOT or DASH decision
+        if duration < threshold:
+            symbol = '.'
+        else:
+            symbol = '-'
+ 
+        print(symbol, end='', flush=True)
+ 
+        try:
+            sock.send(symbol.encode())
+        except:
+            print("\nConnection lost.")
+            return False
+ 
+    # Exit condition
+    if key == keyboard.Key.esc:
+        print("\nExiting sender...")
+        sock.close()
+        return False
+ 
+# Start listening
+with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
+    listener.join()
