@@ -1,0 +1,55 @@
+import socket
+import time
+morse_dict = {
+    ".-": "A", "-...": "B", "-.-.": "C", "-..": "D",
+    ".": "E", "..-.": "F", "--.": "G", "....": "H",
+    "..": "I", ".---": "J", "-.-": "K", ".-..": "L",
+    "--": "M", "-.": "N", "---": "O", ".--.": "P",
+    "--.-": "Q", ".-.": "R", "...": "S", "-": "T",
+    "..-": "U", "...-": "V", ".--": "W", "-..-": "X",
+    "-.--": "Y", "--..": "Z"
+}
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server.bind(('0.0.0.0', 8080))
+server.listen(1)
+print("\n===== MORSE CODE RECEIVER =====")
+print("Waiting for connection...\n")
+conn, addr = server.accept()
+print(f"Connected from: {addr}\n")
+# ✅ KEY FIX
+conn.setblocking(False)
+buffer = ""
+decoded_message = ""
+last_time = time.time()
+LETTER_GAP = 0.8
+WORD_GAP = 2.0
+space_printed = False
+print("Receiving Morse:\n")
+while True:
+    try:
+        data = conn.recv(1).decode()
+        if data:
+            buffer += data
+            print(data, end='', flush=True)
+            last_time = time.time()
+            space_printed = False
+    except BlockingIOError:
+        pass  # No data available → continue loop
+    # ✅ NOW this actually runs continuously
+    current_time = time.time()
+    # LETTER GAP
+    if current_time - last_time > LETTER_GAP and buffer:
+        if buffer in morse_dict:
+            decoded_char = morse_dict[buffer]
+            decoded_message += decoded_char
+            print(f" → {decoded_char}")
+        else:
+            print(" → ?")
+        buffer = ""
+    # WORD GAP
+    if current_time - last_time > WORD_GAP and not space_printed:
+        decoded_message += " "
+        print("\nCurrent Message:", decoded_message)
+        space_printed = True
+    time.sleep(0.01)  # small delay to reduce CPU usage
